@@ -1,6 +1,6 @@
 export default {
     "login.name": "Username",
-    "login.name.error": "Please enter username",
+    "login.name.error": "Please enter Username",
     "login.password": "Password",
     "login.password.error": "Please enter Password",
     "login.securityCode": "Security Token",

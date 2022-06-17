@@ -20,19 +20,18 @@ import styles from './index.less';
  * @param save save
  * @param saveUserConfig 保存用户配置至global state与wave
  * @param loginLoading 加载状态
- * @returns {JSX.Element}
  * @constructor
  */
-const IndexPage = ({ getToken, getVersionList, saveUserConfig, getUser, save, loginLoading = false, }) => {
+const IndexPage = ({ getToken, getVersionList, saveUserConfig, getUser, loginLoading = false, }) => {
     const [form] = Form.useForm();
     const [errorMessage, setErrorMessage] = useState('');
     const [remember, setRemember] = useState(true);
     const { formatMessage } = useIntl();
-    
+
     const onfocus = () => {
         setErrorMessage('');
     }
-    
+
     /**
      * 自动登录状态更改
      * @param e
@@ -40,7 +39,7 @@ const IndexPage = ({ getToken, getVersionList, saveUserConfig, getUser, save, lo
     const onCheckChange = (e) => {
         setRemember(e.target.checked);
     };
-    
+
     /**
      * 登录成功，页面跳转
      * 默认跳转home页
@@ -48,7 +47,7 @@ const IndexPage = ({ getToken, getVersionList, saveUserConfig, getUser, save, lo
     const loginSuccess = () => {
         history.replace({ pathname: '/home' });
     }
-    
+
     /**
      * 获取用户信息
      */
@@ -60,7 +59,7 @@ const IndexPage = ({ getToken, getVersionList, saveUserConfig, getUser, save, lo
             res?.Id && loginSuccess();
         })
     }
-    
+
     /**
      * login
      * 获取token
@@ -97,7 +96,7 @@ const IndexPage = ({ getToken, getVersionList, saveUserConfig, getUser, save, lo
             getUserInfo();
         });
     };
-    
+
     /**
      * 1.获取已保存的用户配置，填充表单
      * 2.获取版本信息
@@ -118,7 +117,7 @@ const IndexPage = ({ getToken, getVersionList, saveUserConfig, getUser, save, lo
             })
         });
     }, []);
-    
+
     return (<>
         {errorMessage && <div className={styles.errorDiv}>
             <div className={styles.errorMessage}>{formatMessage({ id: errorMessage })}</div>
@@ -139,7 +138,7 @@ const IndexPage = ({ getToken, getVersionList, saveUserConfig, getUser, save, lo
                         }]}
                     >
                         <Input placeholder={formatMessage({ id: 'login.name' })}
-                               prefix={<Image src={UserIcon} preview={false}/>}/>
+                            prefix={<Image src={UserIcon} preview={false} />} />
                     </Form.Item>
                     <Form.Item
                         name="password"
@@ -148,18 +147,18 @@ const IndexPage = ({ getToken, getVersionList, saveUserConfig, getUser, save, lo
                         }]}
                     >
                         <Input.Password placeholder={formatMessage({ id: 'login.password' })}
-                                        prefix={<Image src={LockIcon} preview={false}/>}
-                                        iconRender={visible => (visible ? <Image src={OpenIcon} preview={false}/> :
-                                            <Image src={CloseIcon} preview={false}/>)}
+                            prefix={<Image src={LockIcon} preview={false} />}
+                            iconRender={visible => (visible ? <Image src={OpenIcon} preview={false} /> :
+                                <Image src={CloseIcon} preview={false} />)}
                         />
                     </Form.Item>
                     <Form.Item
                         name="securityCode"
                     >
                         <Input.Password placeholder={formatMessage({ id: 'login.securityCode' })}
-                                        prefix={<Image src={CodeIcon} preview={false}/>}
-                                        iconRender={visible => (visible ? <Image src={OpenIcon} preview={false}/> :
-                                            <Image src={CloseIcon} preview={false}/>)}
+                            prefix={<Image src={CodeIcon} preview={false} />}
+                            iconRender={visible => (visible ? <Image src={OpenIcon} preview={false} /> :
+                                <Image src={CloseIcon} preview={false} />)}
                         />
                     </Form.Item>
                 </div>
@@ -176,9 +175,12 @@ const IndexPage = ({ getToken, getVersionList, saveUserConfig, getUser, save, lo
             </Form>
         </div>
         <div className={styles.footer}>
-            <Footer url="" message={formatMessage({ id: 'login.user.guide' })} style={{ textAlign: "right" }}/>｜
-            <Footer url='https://help.salesforce.com/s/articleView?id=000326486&type=1'
-                    message={formatMessage({ id: 'login.learn.package' })} style={{ textAlign: "left" }}/>
+            <div>
+                <Footer url="https://documentation.grandstream.com/knowledge-base/wave-crm-add-ins/#overview"
+                    message={formatMessage({ id: 'login.user.guide' })} style={{ textAlign: "right" }} />｜
+                <Footer url='https://help.salesforce.com/s/articleView?id=000326486&type=1'
+                    message={formatMessage({ id: 'login.learn.package' })} style={{ textAlign: "left" }} />
+            </div>
         </div>
     </>);
 };

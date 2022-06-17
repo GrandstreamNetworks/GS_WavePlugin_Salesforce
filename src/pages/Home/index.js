@@ -65,7 +65,7 @@ const HomePage = ({
             };
             putCallInfo(payload);
         });
-    };
+    }
 
     const getUrl = contact => {
         return contact?.Id ? tokenInfo?.instance_url + "/" + contact.Id : tokenInfo?.instance_url + "/lightning/o/Contact/new";
@@ -101,7 +101,7 @@ const HomePage = ({
                 notificationBody: getNotificationBody(body),
             })
         });
-    };
+    }
 
     useEffect(() => {
 
@@ -133,7 +133,10 @@ const HomePage = ({
             console.log("onRejectP2PCall", callType, callNum);
             uploadCallInfo(callNum, 0, 0, WAVE_CALL_TYPE.in);
             if (callNumber.current === callNum) {
-                pluginSDK.hideNotification();
+                setTimeout(() => {
+                    // @ts-ignore
+                    pluginSDK.hideNotification();
+                }, 1000)
             }
         });
 
@@ -147,7 +150,10 @@ const HomePage = ({
             callDirection = callDirection === "in" ? WAVE_CALL_TYPE.in : WAVE_CALL_TYPE.out;
             uploadCallInfo(callNum, callStartTimeStamp ?? 0, callEndTimeStamp ?? 0, callDirection);
             if (callNumber.current === callNum) {
-                pluginSDK.hideNotification();
+                setTimeout(() => {
+                    // @ts-ignore
+                    pluginSDK.hideNotification();
+                }, 1000)
             }
         });
 
@@ -155,7 +161,10 @@ const HomePage = ({
             console.log("p2PCallCanceled", callType, callNum);
             uploadCallInfo(callNum, 0, 0, WAVE_CALL_TYPE.in);
             if (callNumber.current === callNum) {
-                pluginSDK.hideNotification();
+                setTimeout(() => {
+                    // @ts-ignore
+                    pluginSDK.hideNotification();
+                }, 1000)
             }
         });
 

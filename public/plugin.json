@@ -1,10 +1,10 @@
 {
   "name": "SalesForce",
-  "version": "1.0.0.5",
+  "version": "1.0.0.12",
   "description": "Salesforce provides a customer relationship management solution that brings customers and companies closer together than ever before. With this integration, Wave users can seamlessly obtain customer information from Salesforce and interact with customers in an informed and knowledgeable manner.",
   "icon": "/salesforce_logo.png",
-  "permissions": [
-    "call.listen"
-  ],
-  "plugin_type": "background"
+  "extend_icon":"./extend_icon.png",
+  "permissions": ["call.listen"],
+  "plugin_type": "background",
+  "minimum_wave_version": "1.15.*"
 }
