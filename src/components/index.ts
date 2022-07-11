@@ -1,15 +1,19 @@
 import ConnectError from './ConnectError';
 import ConnectState from './ConnectState';
-import CountdownButton from './CountdownButton';
+import ConfigBlock from "./ConfigBlock";
+import ConfigSelect from "@/components/ConfigSelect";
 import SwitchBtn from './SwitchBtn';
 import CRMFooter from './CRMFooter'
 import Footer from './Footer';
+import CallAction from "./CallAction";
 
 export {
     ConnectError,
     ConnectState,
-    CountdownButton,
+    ConfigSelect,
+    ConfigBlock,
     SwitchBtn,
     CRMFooter,
-    Footer
+    Footer,
+    CallAction
 }

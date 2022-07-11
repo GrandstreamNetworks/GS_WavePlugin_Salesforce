@@ -1,11 +1,17 @@
 import React from 'react';
 import { Button } from 'antd';
 import { ExclamationCircleFilled, LoadingOutlined } from '@ant-design/icons';
-import { connect, useIntl } from 'umi';
+import { connect, GlobalModelState, useIntl } from 'umi';
 import { REQUEST_CODE } from '@/constant';
 import styles from './index.less'
 
-const IndexPage = ({ connectState, save, getVersionList }) => {
+interface IndexProps {
+    connectState: string
+    save: (obj: LooseObject) => void
+    getVersionList: () => void
+}
+
+const IndexPage: React.FC<IndexProps> = ({ connectState, save, getVersionList }) => {
     const { formatMessage } = useIntl();
 
     const reConnect = () => {
@@ -32,7 +38,7 @@ const IndexPage = ({ connectState, save, getVersionList }) => {
 }
 
 export default connect(
-    ({ global }) => ({
+    ({ global }: { global: GlobalModelState }) => ({
         connectState: global.connectState,
     }),
     (dispatch) => ({
@@ -40,7 +46,7 @@ export default connect(
             dispatch({
                 type: 'global/getVersionList',
             }),
-        save: (payload) =>
+        save: (payload: LooseObject) =>
             dispatch({
                 type: 'global/save',
                 payload,

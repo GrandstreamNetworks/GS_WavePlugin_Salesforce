@@ -2,9 +2,9 @@ const DEVELOP_USER_CONFIG = {
     host: 'https://grandstream4-dev-ed.my.salesforce.com/',
     grant_type: 'password',
     client_id:
-        '3MVG9pRzvMkjMb6ka7zDuRRC1BcZUe5fDwuCXuPKO1Oi.HffMmco3kVxV0yHYTdW86xovWXmRaBgkBqBU2sCX',
+        'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
     client_secret:
-        '84D92A60E23397EDB98FA5D3EB674E61CC5352DA1C1D81617DAEA958E9D35208',
+        'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
 };
 
 const DATE_FORMAT = {
@@ -65,7 +65,43 @@ const WAVE_CALL_TYPE = {
     miss: 'Missed',
 }
 
+type CONFIG_SHOW = {
+    None: null | undefined
+    Name: string,
+    Phone: string,
+    Fax: string,
+    Email: string,
+    Industry: string,
+    Company: string,
+    Title: string,
+    Department: string,
+    Description: string,
+}
+
+const CONFIG_SHOW: CONFIG_SHOW = {
+    None: undefined,
+    Name: 'Name',
+    Phone: "Phone",
+    Fax: 'Fax',
+    Email: 'Email',
+    Industry: 'Industry',
+    Company: 'Company',
+    Title: 'Title',
+    Department: 'Department',
+    Description: 'Description',
+}
+
+const NotificationConfig = {
+    first: 'information 1',
+    second: 'information 2',
+    third: 'information 3',
+    forth: 'information 4',
+    fifth: 'information 5'
+}
+
 export {
+    NotificationConfig,
+    CONFIG_SHOW,
     DEVELOP_USER_CONFIG,
     DATE_FORMAT,
     GLOBAL_MESSAGE,

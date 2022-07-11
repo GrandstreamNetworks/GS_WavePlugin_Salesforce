@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { history, useIntl, connect } from 'umi';
-import { Form, Input, Button, Checkbox, Image } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { connect, Dispatch, history, Loading, useIntl, ConnectProps } from 'umi';
+import { Button, Checkbox, Form, Image, Input } from 'antd';
 import { REQUEST_CODE } from '@/constant';
 import { Footer } from '@/components';
 import UserIcon from '../../asset/login/account-line.svg';
@@ -9,6 +9,15 @@ import CodeIcon from '../../asset/login/code-line.svg';
 import OpenIcon from '../../asset/login/password-open.svg';
 import CloseIcon from '../../asset/login/password-close.svg';
 import styles from './index.less';
+
+interface LoginProps extends ConnectProps {
+    getToken: (obj: LooseObject) => Promise<any>
+    getVersionList: () => Promise<any>
+    saveUserConfig: (obj: LooseObject) => void
+    save: (obj: LooseObject) => void
+    getUser: () => Promise<any>
+    loginLoading: boolean | undefined
+}
 
 /**
  * 登录页
@@ -22,7 +31,14 @@ import styles from './index.less';
  * @param loginLoading 加载状态
  * @constructor
  */
-const IndexPage = ({ getToken, getVersionList, saveUserConfig, getUser, loginLoading = false, }) => {
+const IndexPage: React.FC<LoginProps> = ({
+    getToken,
+    getVersionList,
+    saveUserConfig,
+    save,
+    getUser,
+    loginLoading = false,
+}) => {
     const [form] = Form.useForm();
     const [errorMessage, setErrorMessage] = useState('');
     const [remember, setRemember] = useState(true);
@@ -36,7 +52,7 @@ const IndexPage = ({ getToken, getVersionList, saveUserConfig, getUser, loginLoa
      * 自动登录状态更改
      * @param e
      */
-    const onCheckChange = (e) => {
+    const onCheckChange = (e: { target: { checked: boolean | ((prevState: boolean) => boolean); }; }) => {
         setRemember(e.target.checked);
     };
 
@@ -67,7 +83,7 @@ const IndexPage = ({ getToken, getVersionList, saveUserConfig, getUser, loginLoa
      * 获取用户信息
      * @param values 用户信息
      */
-    const login = async values => {
+    const login = (values: LooseObject) => {
         const { username, password, securityCode = '' } = values;
         const params = {
             username, password, securityCode,
@@ -86,12 +102,22 @@ const IndexPage = ({ getToken, getVersionList, saveUserConfig, getUser, loginLoa
                 return;
             }
             const userConfig = {
-                ...values,
-                password: remember ? values.password : undefined,
-                securityCode: remember ? values.securityCode : undefined,
+                tokenInfo: {
+                    username,
+                    password: remember ? values.password : undefined,
+                    securityCode: remember ? values.securityCode : undefined,
+                },
                 autoLogin: remember,
                 uploadCall: values.uploadCall ?? true,
+                showConfig: values.showConfig ?? {
+                    first: 'Name',
+                    second: 'Phone',
+                    third: 'None',
+                    forth: 'None',
+                    fifth: 'None',
+                },
             }
+            save(userConfig);
             saveUserConfig(userConfig)
             getUserInfo();
         });
@@ -103,15 +129,16 @@ const IndexPage = ({ getToken, getVersionList, saveUserConfig, getUser, loginLoa
      * 3.自动登录
      */
     useEffect(() => {
-        getVersionList().then(async () => {
+        getVersionList().then(() => {
+            // @ts-ignore
             pluginSDK.userConfig.getUserConfig(function ({ errorCode, data }) {
                 console.log(errorCode, data);
                 if (errorCode === 0 && data) {
                     const userConfig = JSON.parse(data);
                     console.log(userConfig);
-                    form.setFieldsValue(userConfig);
+                    form.setFieldsValue(userConfig.tokenInfo);
                     if (userConfig.autoLogin) {
-                        login(userConfig);
+                        login({ ...userConfig.tokenInfo, ...userConfig });
                     }
                 }
             })
@@ -185,18 +212,26 @@ const IndexPage = ({ getToken, getVersionList, saveUserConfig, getUser, loginLoa
     </>);
 };
 
-export default connect(({ loading }) => ({
-    loginLoading: loading.effects['login/getVersionList'] || loading.effects['login/getToken'] || loading.effects['global/getUser'],
-}), (dispatch) => ({
-    getVersionList: () => dispatch({
-        type: 'global/getVersionList',
-    }), getToken: (payload) => dispatch({
-        type: 'login/getToken', payload,
-    }), getUser: payload => dispatch({
-        type: 'global/getUser', payload,
-    }), save: payload => dispatch({
-        type: 'global/save', payload,
-    }), saveUserConfig: payload => dispatch({
-        type: 'global/saveUserConfig', payload,
+export default connect(
+    ({ loading }: { loading: Loading }) => ({
+        loginLoading: loading.effects['login/getVersionList'] || loading.effects['login/getToken'] || loading.effects['global/getUser'],
+    }),
+    (dispatch: Dispatch) => ({
+        getVersionList: () => dispatch({
+            type: 'global/getVersionList',
+        }),
+        getToken: (payload: LooseObject) => dispatch({
+            type: 'login/getToken', payload,
+        }),
+        getUser: () => dispatch({
+            type: 'global/getUser',
+        }),
+        saveUserConfig: (payload: LooseObject) => dispatch({
+            type: 'global/saveUserConfig', payload,
+        }),
+        save: (payload: LooseObject) => dispatch({
+            type: 'global/save',
+            payload
+        })
     })
-}))(IndexPage);
+)(IndexPage);
