@@ -1,12 +1,15 @@
 import React, { useEffect, useRef } from "react";
+import { connect, Dispatch, GlobalModelState } from 'umi';
 import { EVENT_KEY, WAVE_CALL_TYPE } from "@/constant";
 
 interface IndexProps {
+    callState: Map<string, boolean>
     initCallInfo: (obj: string) => void
     uploadCallInfo: (callNum: string, callStartTimeStamp: number, callEndTimeStamp: number, callDirection: string) => void
+    save: (obj: LooseObject) => void
 }
 
-const IndexPage: React.FC<IndexProps> = ({ initCallInfo, uploadCallInfo }) => {
+const IndexPage: React.FC<IndexProps> = ({ callState, initCallInfo, uploadCallInfo, save }) => {
 
     const callNumber = useRef(null);
 
@@ -19,6 +22,8 @@ const IndexPage: React.FC<IndexProps> = ({ initCallInfo, uploadCallInfo }) => {
         pluginSDK.eventEmitter.on(EVENT_KEY.recvP2PIncomingCall, function ({ callType, callNum }) {
             console.log("onRecvP2PIncomingCall", callType, callNum);
             callNumber.current = callNum;
+            callState.set(callNum, true);
+            save({ callState });
             initCallInfo(callNum);
         });
 
@@ -28,8 +33,10 @@ const IndexPage: React.FC<IndexProps> = ({ initCallInfo, uploadCallInfo }) => {
          */
         // @ts-ignore
         pluginSDK.eventEmitter.on(EVENT_KEY.initP2PCall, function ({ callType, callNum }) {
-            console.log("onHangupP2PCall", callType, callNum);
+            console.log("onInitP2PCall", callType, callNum);
             callNumber.current = callNum;
+            callState.set(callNum, true);
+            save({ callState });
             initCallInfo(callNum);
         });
 
@@ -53,10 +60,11 @@ const IndexPage: React.FC<IndexProps> = ({ initCallInfo, uploadCallInfo }) => {
             console.log("onRejectP2PCall", callType, callNum);
             uploadCallInfo(callNum, 0, 0, WAVE_CALL_TYPE.in);
             if (callNumber.current === callNum) {
-                setTimeout(() => {
-                    // @ts-ignore
-                    pluginSDK.hideNotification();
-                }, 1000)
+                console.log("hideNotification, callNum, callState", callNum, callState);
+                callState.set(callNum, false);
+                save({ callState });
+                // @ts-ignore
+                pluginSDK.hideNotification();
             }
         });
 
@@ -71,10 +79,11 @@ const IndexPage: React.FC<IndexProps> = ({ initCallInfo, uploadCallInfo }) => {
             callDirection = callDirection === "in" ? WAVE_CALL_TYPE.in : WAVE_CALL_TYPE.out;
             uploadCallInfo(callNum, callStartTimeStamp ?? 0, callEndTimeStamp ?? 0, callDirection);
             if (callNumber.current === callNum) {
-                setTimeout(() => {
-                    // @ts-ignore
-                    pluginSDK.hideNotification();
-                }, 1000)
+                console.log("hideNotification, callNum, callState", callNum, callState);
+                callState.set(callNum, false);
+                save({ callState });
+                // @ts-ignore
+                pluginSDK.hideNotification();
             }
         });
 
@@ -83,10 +92,11 @@ const IndexPage: React.FC<IndexProps> = ({ initCallInfo, uploadCallInfo }) => {
             console.log("p2PCallCanceled", callType, callNum);
             uploadCallInfo(callNum, 0, 0, WAVE_CALL_TYPE.in);
             if (callNumber.current === callNum) {
-                setTimeout(() => {
-                    // @ts-ignore
-                    pluginSDK.hideNotification();
-                }, 1000)
+                console.log("hideNotification, callNum, callState", callNum, callState);
+                callState.set(callNum, false);
+                save({ callState });
+                // @ts-ignore
+                pluginSDK.hideNotification();
             }
         });
 
@@ -99,12 +109,30 @@ const IndexPage: React.FC<IndexProps> = ({ initCallInfo, uploadCallInfo }) => {
 
             // @ts-ignore
             pluginSDK.eventEmitter.off(EVENT_KEY.p2PCallCanceled);
+
+            save({ callState: new Map() });
         };
 
     }, [uploadCallInfo]);
 
+    useEffect(() => {
+        return function closeNotification() {
+            // @ts-ignore
+            pluginSDK.hideNotification();
+        }
+    }, [])
 
     return (<></>)
 }
 
-export default IndexPage;
+export default connect(
+    ({ global }: { global: GlobalModelState }) => ({
+        callState: global.callState
+    }),
+    (dispatch: Dispatch) => ({
+        save: (payload: LooseObject) => dispatch({
+            type: 'global/save',
+            payload
+        })
+    })
+)(IndexPage);

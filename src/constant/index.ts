@@ -2,9 +2,9 @@ const DEVELOP_USER_CONFIG = {
     host: 'https://grandstream4-dev-ed.my.salesforce.com/',
     grant_type: 'password',
     client_id:
-        'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+        '3MVG9pRzvMkjMb6ka7zDuRRC1BcZUe5fDwuCXuPKO1Oi.HffMmco3kVxV0yHYTdW86xovWXmRaBgkBqBU2sCX',
     client_secret:
-        'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+        '84D92A60E23397EDB98FA5D3EB674E61CC5352DA1C1D81617DAEA958E9D35208',
 };
 
 const DATE_FORMAT = {

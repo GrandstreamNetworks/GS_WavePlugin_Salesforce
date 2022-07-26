@@ -13,9 +13,10 @@ interface HomePageProps {
     tokenInfo: LooseObject
     showConfig: LooseObject
     uploadCall: boolean
+    callState: Map<string, boolean>
 }
 
-const HomePage: React.FC<HomePageProps> = ({ getQueryList, user, tokenInfo, putCallInfo, showConfig, uploadCall, }) => {
+const HomePage: React.FC<HomePageProps> = ({ getQueryList, user, tokenInfo, putCallInfo, showConfig, uploadCall, callState }) => {
     const { formatMessage } = useIntl();
 
     const uploadCallInfo = useCallback((callNum: string, callStartTimeStamp: number, callEndTimeStamp: number, callDirection?: string) => {
@@ -54,26 +55,27 @@ const HomePage: React.FC<HomePageProps> = ({ getQueryList, user, tokenInfo, putC
             };
             putCallInfo(payload).then(r => console.log(r));
         });
-    }, [tokenInfo, user]);
+    }, [tokenInfo, user, uploadCall]);
 
     const initCallInfo = useCallback((callNum) => {
         callNum = callNum.replace(/\b(0+)/gi, "");
         getQueryList({ ...tokenInfo, callNum }).then(contact => {
-            if (!contact?.displayNotification) {
+            console.log("callState", callState);
+            if (!contact?.displayNotification || !callState.get(callNum)) {
                 return;
             }
             const url = getUrlByContact(contact);
             const pluginPath = sessionStorage.getItem("pluginPath");
 
             // body对象，
-            const body = {
+            const body: LooseObject = {
                 logo: `<div style="margin-bottom: 12px"><img src="${pluginPath}/salesforce.svg" alt=""/> Salesforce CRM</div>`,
             }
 
             // 根据自定义信息，添加body属性
             if (contact?.Id) {
                 // 将showConfig重复的删除
-                const configList = [...new Set(Object.values(showConfig))]
+                const configList = [...new Set<string>(Object.values(showConfig))]
                 console.log(configList);
                 for (const key in configList) {
                     console.log(configList[key])
@@ -85,44 +87,21 @@ const HomePage: React.FC<HomePageProps> = ({ getQueryList, user, tokenInfo, putC
                     const configValue = getValueByConfig(contact, configList[key]);
                     console.log(configValue);
                     if (configList[key] === 'Phone') {
-                        Object.defineProperty(body, `config_${key}`,
-                            {
-                                value: `<div style="font-weight: bold">${callNum}</div>`,
-                                writable: true,
-                                enumerable: true,
-                                configurable: true
-                            });
+                        body[`config_${key}`] = `<div style="font-weight: bold">${callNum}</div>`
                     }
                     else if (configValue) {
-                        Object.defineProperty(body, `config_${key}`,
-                            {
-                                value: `<div style="font-weight: bold; display: -webkit-box;-webkit-box-orient: vertical;-webkit-line-clamp: 5;overflow: hidden;">${configValue}</div>`,
-                                writable: true,
-                                enumerable: true,
-                                configurable: true
-                            });
+                        body[`config_${key}`] = `<div style="font-weight: bold; display: -webkit-box;-webkit-box-orient: vertical;-webkit-line-clamp: 5;overflow: hidden;word-break: break-all;text-overflow: ellipsis;">${configValue}</div>`
                     }
                 }
             }
             else {
-                Object.defineProperty(body, 'phone', {
-                    value: `<div style="font-weight: bold;">${callNum}</div>`,
-                    writable: true,
-                    enumerable: true,
-                    configurable: true
-                });
+                body.phone = `<div style="font-weight: bold;">${callNum}</div>`
             }
-
-            Object.defineProperty(body, 'action', {
-                value: `<div style="margin-top: 10px;display: flex;justify-content: flex-end;"><button style="background: none; border: none;">
-                                 <a href=${url} target="_blank" style="color: #62B0FF">
-                                     ${contact?.Id ? formatMessage({ id: 'home.detail' }) : formatMessage({ id: 'home.edit' })}
-                                 </a>
-                             </button></div>`,
-                writable: true,
-                enumerable: true,
-                configurable: true
-            });
+            body.action = `<div style="margin-top: 10px;display: flex;justify-content: flex-end;"><button style="background: none; border: none;">
+                     <a href=${url} target="_blank" style="color: #62B0FF">
+                         ${contact?.Id ? formatMessage({ id: 'home.detail' }) : formatMessage({ id: 'home.edit' })}
+                     </a>
+                 </button></div>`;
 
             console.log("displayNotification");
             // @ts-ignore
@@ -130,7 +109,7 @@ const HomePage: React.FC<HomePageProps> = ({ getQueryList, user, tokenInfo, putC
                 notificationBody: getNotificationBody(body),
             })
         });
-    }, [tokenInfo, showConfig])
+    }, [tokenInfo, showConfig, callState])
 
     return (
         <>
@@ -145,11 +124,12 @@ const HomePage: React.FC<HomePageProps> = ({ getQueryList, user, tokenInfo, putC
     );
 };
 
-export default connect(({ global }: {global: GlobalModelState}) => ({
+export default connect(({ global }: { global: GlobalModelState }) => ({
     user: global.user,
     uploadCall: global.uploadCall,
     tokenInfo: global.tokenInfo,
-    showConfig: global.showConfig
+    showConfig: global.showConfig,
+    callState: global.callState,
 }), (dispatch: Dispatch) => ({
     getQueryList: (payload: LooseObject) => dispatch({
         type: "home/getQueryList",

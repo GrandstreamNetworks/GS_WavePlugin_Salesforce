@@ -21,8 +21,8 @@
     "src/**/*",
     "config/**/*",
     ".umirc.ts",
-    "typings.d.ts",
-    "setupProxy.js"  ],
+    "typings.d.ts"
+  ],
   "exclude": [
     "node_modules",
     "lib",

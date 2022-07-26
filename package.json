@@ -1,6 +1,5 @@
 {
   "private": true,
-  "version": "1.0.0",
   "scripts": {
     "start": "umi dev",
     "build": "umi build",
@@ -21,30 +20,21 @@
     ]
   },
   "dependencies": {
-    "@ant-design/icons": "^4.7.0",
     "@ant-design/pro-layout": "^6.5.0",
-    "antd": "^4.21.0",
-    "autoprefixer": "^10.4.0",
-    "eslint": "^8.1.0",
-    "form-data": "^4.0.0",
-    "jquery": "^3.6.0",
-    "lodash": "^4.17.21",
-    "moment": "^2.29.1",
-    "qs": "^6.10.1",
+    "@types/lodash": "^4.14.182",
+    "@types/qs": "^6.9.7",
     "react": "17.x",
     "react-dom": "17.x",
-    "umi": "^3.5.20"
+    "umi": "^3.5.26"
   },
   "devDependencies": {
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@umijs/preset-react": "1.x",
-    "@umijs/test": "^3.5.20",
+    "@umijs/test": "^3.5.26",
     "lint-staged": "^10.0.7",
     "prettier": "^2.2.0",
     "typescript": "^4.1.2",
-    "umi-request": "^1.4.0",
     "yorkie": "^2.0.0"
-  },
-  "homepage": "."
+  }
 }

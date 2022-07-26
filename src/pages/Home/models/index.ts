@@ -60,7 +60,7 @@ const HomeModel: HomeModelType = {
                 const url = get(result, ['attributes', 'url']);
                 result = yield call(getFullInfo, url);
                 return {
-                    displayNotification: true, ...result,
+                    displayNotification: connectState === 'SUCCESS', ...result,
                 };
             }
             const paramsAccount = {
@@ -72,7 +72,7 @@ const HomeModel: HomeModelType = {
                 const url = get(result, ['attributes', 'url']);
                 result = yield call(getFullInfo, url);
                 return {
-                    displayNotification: true, ...result,
+                    displayNotification: connectState === 'SUCCESS', ...result,
                 };
             }
             const paramsLead = {
@@ -85,7 +85,7 @@ const HomeModel: HomeModelType = {
                 result = yield call(getFullInfo, url);
             }
             return {
-                displayNotification: true, ...result,
+                displayNotification: connectState === 'SUCCESS', ...result,
             };
         },
 

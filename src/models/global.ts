@@ -4,12 +4,13 @@ import { REQUEST_CODE, SESSION_STORAGE_KEY } from '@/constant';
 import { getUser, getVersionList } from '@/services/global';
 
 export interface GlobalModelState {
-    user: LooseObject,
-    userConfig: LooseObject,
-    connectState: string,
+    user: LooseObject
+    userConfig: LooseObject
+    connectState: string
     tokenInfo: LooseObject
     uploadCall: boolean
-    showConfig: LooseObject,
+    showConfig: LooseObject
+    callState: Map<string, boolean>
 }
 
 export interface GlobalModelType {
@@ -37,6 +38,7 @@ const GlobalModel: GlobalModelType = {
         tokenInfo: {},
         uploadCall: true,
         showConfig: {},
+        callState: new Map(),
     },
 
     effects: {
@@ -139,8 +141,8 @@ const GlobalModel: GlobalModelType = {
         * logout(_, { put, select }) {
             const { userConfig } = yield select((state: any) => state.global);
             userConfig.autoLogin = false;
-            userConfig.password = undefined;
-            userConfig.securityCode = undefined;
+            userConfig.tokenInfo.password = undefined;
+            userConfig.tokenInfo.securityCode = undefined;
             yield put({
                 type: 'saveUserConfig',
                 payload: userConfig,
