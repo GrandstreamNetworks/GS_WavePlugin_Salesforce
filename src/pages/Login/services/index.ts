@@ -1,6 +1,6 @@
 import { stringify } from 'qs';
-import request from  '@/utils/request';
-import { DEVELOP_USER_CONFIG } from '@/constant';
+import request from '@/utils/request';
+import { SESSION_STORAGE_KEY } from '@/constant';
 
 /**
  * 授权
@@ -8,7 +8,8 @@ import { DEVELOP_USER_CONFIG } from '@/constant';
  * @returns
  */
 export function getToken(params: LooseObject) {
-    return request(`${DEVELOP_USER_CONFIG.host}/services/oauth2/token`,
+    const domain = sessionStorage.getItem(SESSION_STORAGE_KEY.domain)
+    return request(`${domain}/services/oauth2/token`,
         {
             method: 'POST',
             body: stringify(params),

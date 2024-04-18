@@ -5,7 +5,7 @@ export default {
     "login.password.error": "Please enter Password",
     "login.securityCode": "Security Token",
     "login.submit": "Log in",
-    "login.remember": "Remember",
+    "login.remember": "Remember me",
     "login.user.guide": "Wave CRM User Guide",
     "login.learn.package": "Learn more about Salesforce CRM plans",
 };

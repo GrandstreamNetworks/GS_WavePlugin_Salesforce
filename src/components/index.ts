@@ -1,19 +1,26 @@
 import ConnectError from './ConnectError';
 import ConnectState from './ConnectState';
 import ConfigBlock from "./ConfigBlock";
-import ConfigSelect from "@/components/ConfigSelect";
-import SwitchBtn from './SwitchBtn';
+import SyncConfig from "./SyncConfig";
+import NotificationConfig from "./NotificationConfig";
+import SwitchConfig from './SwitchConfig';
 import CRMFooter from './CRMFooter'
 import Footer from './Footer';
 import CallAction from "./CallAction";
+import Navigation from './Navigation';
+import ConfigFooter from './ConfigFooter'
+
 
 export {
     ConnectError,
     ConnectState,
-    ConfigSelect,
     ConfigBlock,
-    SwitchBtn,
+    SwitchConfig,
     CRMFooter,
     Footer,
-    CallAction
+    CallAction,
+    SyncConfig,
+    Navigation,
+    NotificationConfig,
+    ConfigFooter,
 }

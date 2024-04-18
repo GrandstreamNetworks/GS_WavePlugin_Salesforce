@@ -7,10 +7,19 @@ const DEVELOP_USER_CONFIG = {
         '84D92A60E23397EDB98FA5D3EB674E61CC5352DA1C1D81617DAEA958E9D35208',
 };
 
+export const LOGIN_CONFIG = {
+    response_type: 'code',
+    prompt: 'login',
+    client_id:
+        '3MVG9pRzvMkjMb6ka7zDuRRC1BcZUe5fDwuCXuPKO1Oi.HffMmco3kVxV0yHYTdW86xovWXmRaBgkBqBU2sCX',
+    redirect_uri: 'https://grandstream4-dev-ed.lightning.force.com/',
+}
+
 const DATE_FORMAT = {
     format_1: 'YYYY/MM/DD',
-    format_2: 'YYYY-MM-DD hh-mm-ss',
-    format_3: 'YYYY/MM/DD hh/mm/ss',
+    format_2: 'YYYY-MM-DD HH-mm-ss',
+    format_3: 'YYYY/MM/DD HH/mm/ss',
+    format_4: 'HH:mm:ss',
 };
 
 const GLOBAL_MESSAGE = {
@@ -44,9 +53,13 @@ const REQUEST_CODE = {
     reConnect: 'RECONNECT',
 };
 
+const DEFAULT_DOMAIN = 'https://login.salesforce.com';
+
 const SESSION_STORAGE_KEY = {
+    domain: 'domain',
     tokenInfo: 'tokenInfo',
     version_uri: 'version_uri',
+    rememberMe: 'rememberMe',
 }
 
 const EVENT_KEY = {
@@ -57,6 +70,7 @@ const EVENT_KEY = {
     initP2PCall: 'onInitP2PCall', // wave发去呼叫
     p2PCallCanceled: 'onP2PCallCanceled', // 未接来电、去电
     initPluginWindowOk: 'onInitPluginWindowOk', //初始化窗口成功
+    onViewCustomerInfos: 'onViewCustomerInfos' // 收到客户信息
 }
 
 const WAVE_CALL_TYPE = {
@@ -92,21 +106,44 @@ const CONFIG_SHOW: CONFIG_SHOW = {
 }
 
 const NotificationConfig = {
-    first: 'information 1',
-    second: 'information 2',
-    third: 'information 3',
-    forth: 'information 4',
-    fifth: 'information 5'
+    first: 'Information 1',
+    second: 'Information 2',
+    third: 'Information 3',
+    forth: 'Information 4',
+    fifth: 'Information 5'
 }
 
+const NOTIFICATION_CONFIG_DEF = {
+    first: 'Name',
+    second: 'Phone',
+    third: 'None',
+    forth: 'None',
+    fifth: 'None',
+}
+
+const AUTO_CREATE_CONFIG_DEF = {
+    numberType: 'Wave',
+    direction: 'All',
+    entityType: 'Contact',
+    firstName: 'Wave [Number]',
+    lastName: 'New',
+}
+
+const UPLOAD_CALL_CONFIG_DEF = {
+    subject: 'Wave PhoneSystem Call',
+    Inbound: '[DateTime]: Incoming call from [Number] [Name] to [Agent]([Duration])',
+    Missed: '[DateTime]: Missed call from [Number] [Name] to [Agent]',
+    Outbound: '[DateTime]: Outgoing call from [Agent] to [Number] [Name] ([Duration])',
+    unansweredOutbound: '[DateTime]: Unanswered outgoing call from [Agent] to [Number] [Name]'
+}
+
+const CREATION_CONFIG_CONTACT_TYPE = [
+    'Contact', 'Account'
+]
+
 export {
-    NotificationConfig,
-    CONFIG_SHOW,
-    DEVELOP_USER_CONFIG,
-    DATE_FORMAT,
-    GLOBAL_MESSAGE,
-    REQUEST_CODE,
-    SESSION_STORAGE_KEY,
-    EVENT_KEY,
-    WAVE_CALL_TYPE
+    DEFAULT_DOMAIN,
+    AUTO_CREATE_CONFIG_DEF, CONFIG_SHOW, CREATION_CONFIG_CONTACT_TYPE, DATE_FORMAT, DEVELOP_USER_CONFIG, EVENT_KEY, GLOBAL_MESSAGE, NOTIFICATION_CONFIG_DEF, NotificationConfig, REQUEST_CODE,
+    SESSION_STORAGE_KEY, UPLOAD_CALL_CONFIG_DEF, WAVE_CALL_TYPE
 };
+

@@ -6,10 +6,13 @@ interface Props {
     message: string
 }
 
-const IndexPage: React.FC<Props> = ({ url, message }) => {
+const IndexPage: React.FC<Props> = ({ url, message }) => {    const onClick = () => {
+        window.open(url)
+    }
+
     return (
         <div className={styles.footer}>
-            <a href={url} target="_blank">{message}</a>
+            <span className={styles.openUrl} onClick={onClick}>{message}</span>
         </div >
     )
 }

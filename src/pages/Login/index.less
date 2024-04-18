@@ -35,6 +35,50 @@
             padding-bottom: 48px;
         }
 
+        .clientId {
+            width: 100%;
+            position: relative;
+        }
+
+        .downIcon {
+            cursor: pointer;
+        }
+
+        .clientIdList {
+            position: absolute;
+            top: 40px;
+            left: -10px;
+            width: 340px;
+            max-height: 104px;
+            overflow: auto;
+            z-index: 10;
+            padding: 4px 9px 4px 11px;
+
+            .clientIdListContent {
+                max-height: 96px;
+                overflow-y: auto;
+                text-align: center;
+                background-color: white;
+                box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.14), 0 0 10px 0 rgba(0, 0, 0, 0.14);
+                border-radius: 4px;
+            }
+
+            .clientIdItem {
+                padding-inline: 11px;
+                height: 32px;
+                line-height: 32px;
+                text-align: left;
+                cursor: pointer;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
+
+                &:hover {
+                    background-color: #F0F2F5;
+                }
+            }
+        }
+
         .remember {
             color: #6f737b;
             line-height: 17px;
@@ -154,6 +198,10 @@
                     font-size: 0;
                 }
 
+                .ant-input-suffix {
+                    cursor: pointer;
+                }
+
                 .ant-input {
                     background: #f5f7fa;
                 }
@@ -183,11 +231,14 @@
 }
 
 .footer {
-    position: absolute;
-    bottom: 12px;
+    position: fixed;
+    bottom: 0;
     left: 0;
     width: 100%;
-    line-height: 17px;
+    height: 24px;
+    background: #FFFFFF;
+    padding-bottom: 8px;
+    line-height: 16px;
     display: flex;
     flex-direction: row;
     justify-content: space-around;

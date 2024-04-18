@@ -1,16 +1,12 @@
-import { get } from 'lodash';
-import { Effect, Reducer, history } from 'umi';
 import { REQUEST_CODE, SESSION_STORAGE_KEY } from '@/constant';
 import { getUser, getVersionList } from '@/services/global';
+import { get } from 'lodash';
+import { Effect, Reducer } from 'umi';
 
 export interface GlobalModelState {
     user: LooseObject
     userConfig: LooseObject
     connectState: string
-    tokenInfo: LooseObject
-    uploadCall: boolean
-    showConfig: LooseObject
-    callState: Map<string, boolean>
 }
 
 export interface GlobalModelType {
@@ -19,8 +15,7 @@ export interface GlobalModelType {
     effects: {
         getVersionList: Effect
         getUser: Effect
-        uploadCallChange: Effect
-        saveShowConfig: Effect
+        userConfigChange: Effect
         saveUserConfig: Effect
         logout: Effect
     }
@@ -35,14 +30,10 @@ const GlobalModel: GlobalModelType = {
         user: {},
         userConfig: {},
         connectState: 'SUCCESS',
-        tokenInfo: {},
-        uploadCall: true,
-        showConfig: {},
-        callState: new Map(),
     },
 
     effects: {
-        * getVersionList(_, { call, put }) {
+        * getVersionList(_, { call, put }): any {
             console.log("getVersionList")
             const res = yield call(getVersionList);
             console.log(res);
@@ -58,7 +49,7 @@ const GlobalModel: GlobalModelType = {
             return null;
         },
 
-        * getUser(_, { call, put }) {
+        * getUser(_, { call, put }): any {
             const version_uri = sessionStorage.getItem(SESSION_STORAGE_KEY.version_uri);
             if (!version_uri) {
                 const getVersion = yield put({
@@ -67,7 +58,14 @@ const GlobalModel: GlobalModelType = {
 
                 yield call(() => getVersion);
             }
-            const res = yield call(getUser, '');
+            let res = yield call(getUser, '');
+            if (res?.status === REQUEST_CODE.noAuthority) {
+                const getToken = yield put({
+                    type: 'login/getToken',
+                })
+                yield call(() => getToken);
+                res = yield call(getUser, '');
+            }
             if (res?.status === REQUEST_CODE.forbidden) {
                 return {
                     error: 'error.no.permissions'
@@ -94,34 +92,15 @@ const GlobalModel: GlobalModelType = {
             return null;
         },
 
-        * uploadCallChange({ payload }, { put, select }) {
+        * userConfigChange({ payload }, { put, select }) {
             const { userConfig } = yield select((state: any) => state.global);
-            userConfig.uploadCall = payload;
+            const newConfig = {
+                ...userConfig,
+                ...payload,
+            }
             yield put({
                 type: 'saveUserConfig',
-                payload: userConfig,
-            })
-            yield put({
-                type: 'save',
-                payload: {
-                    uploadCall: payload,
-                }
-            })
-        },
-
-        * saveShowConfig({ payload }, { put, select }) {
-            const { userConfig } = yield select((state: any) => state.global);
-            console.log(userConfig);
-            userConfig.showConfig = payload;
-            yield put({
-                type: 'saveUserConfig',
-                payload: userConfig,
-            })
-            yield put({
-                type: 'save',
-                payload: {
-                    showConfig: payload,
-                }
+                payload: newConfig,
             })
         },
 
@@ -138,16 +117,19 @@ const GlobalModel: GlobalModelType = {
             })
         },
 
-        * logout(_, { put, select }) {
+        *logout(_, { put, select }): any {
             const { userConfig } = yield select((state: any) => state.global);
             userConfig.autoLogin = false;
-            userConfig.tokenInfo.password = undefined;
-            userConfig.tokenInfo.securityCode = undefined;
             yield put({
                 type: 'saveUserConfig',
-                payload: userConfig,
-            })
-            history.replace({ pathname: "login" });
+                payload: userConfig
+            });
+            // @ts-ignore
+            yield pluginSDK.clearCookie({ origin: 'https://login.salesforce.com' }, function () { });
+            var url = new URL(window.location.href);
+            url.search = '';
+            url.hash = '#/login';
+            window.location.href = url.toString()
         }
     },
 

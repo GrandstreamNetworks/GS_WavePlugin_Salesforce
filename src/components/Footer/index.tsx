@@ -8,9 +8,14 @@ interface IndexProps {
 }
 
 const IndexPage: React.FC<IndexProps> = ({ url, message, style }) => {
+
+    const onClick = () => {
+        window.open(url)
+    }
+
     return (
         <span className={styles.footer} style={style}>
-            <a href={url} target="_blank">{message}</a>
+            <span className={styles.openUrl} onClick={onClick}>{message}</span>
         </span >
     )
 }

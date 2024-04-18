@@ -2,7 +2,7 @@ export default {
     "home.detail": "Details",
     "home.edit": "Add Contact",
     "home.logged": "has logged in.",
-    "home.Synchronize": "Sync Wave call history to CRM system",
+    "home.Synchronize": "Synchronize Wave Call Records to CRM System",
     "home.toCRM": "Go to Salesforce CRM",
     "home.connectError": "Server disconnected",
     "home.invalidToken": "No permission.",

@@ -1,21 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { connect, Dispatch, history, Loading, useIntl, ConnectProps } from 'umi';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button, Checkbox, Form, Image, Input } from 'antd';
-import { REQUEST_CODE } from '@/constant';
+import { get } from 'lodash';
+import { ConnectProps, Dispatch, Loading, connect, history, useIntl } from 'umi';
+import { AUTO_CREATE_CONFIG_DEF, DEFAULT_DOMAIN, DEVELOP_USER_CONFIG, LOGIN_CONFIG, NOTIFICATION_CONFIG_DEF, REQUEST_CODE, SESSION_STORAGE_KEY, UPLOAD_CALL_CONFIG_DEF } from '@/constant';
+import { checkServerAddress, setToken } from '@/utils/utils';
 import { Footer } from '@/components';
-import UserIcon from '../../asset/login/account-line.svg';
-import LockIcon from '../../asset/login/lock-line.svg';
-import CodeIcon from '../../asset/login/code-line.svg';
-import OpenIcon from '../../asset/login/password-open.svg';
-import CloseIcon from '../../asset/login/password-close.svg';
+import ServerIcon from '@/asset/login/service-line.svg'
+import DownIcon from '@/asset/login/down.svg'
 import styles from './index.less';
 
+
 interface LoginProps extends ConnectProps {
-    getToken: (obj: LooseObject) => Promise<any>
     getVersionList: () => Promise<any>
     saveUserConfig: (obj: LooseObject) => void
-    save: (obj: LooseObject) => void
     getUser: () => Promise<any>
+    login: () => void
+    getTokenByCodeRequest: (obj: any) => Promise<any>
     loginLoading: boolean | undefined
 }
 
@@ -32,16 +32,20 @@ interface LoginProps extends ConnectProps {
  * @constructor
  */
 const IndexPage: React.FC<LoginProps> = ({
-    getToken,
+    login,
     getVersionList,
     saveUserConfig,
-    save,
     getUser,
+    getTokenByCodeRequest,
     loginLoading = false,
 }) => {
     const [form] = Form.useForm();
+    const userConfig = useRef<LooseObject>({});
     const [errorMessage, setErrorMessage] = useState('');
+    const [domains, setDomains] = useState<string[]>([]);
     const [remember, setRemember] = useState(true);
+    const [domainShow, setDomainShow] = useState(false);
+
     const { formatMessage } = useIntl();
 
     const onfocus = () => {
@@ -56,23 +60,52 @@ const IndexPage: React.FC<LoginProps> = ({
         setRemember(e.target.checked);
     };
 
+    const closeList = () => {
+        setDomainShow(false);
+    };
+
+    const setDomain = (domain: string) => {
+        form.setFieldsValue({ domain });
+        setDomainShow(false)
+    };
+
+    const showDomainList = (event: any) => {
+        setDomainShow(true);
+        event.stopPropagation();
+    };
+
     /**
      * 登录成功，页面跳转
      * 默认跳转home页
      */
-    const loginSuccess = () => {
+    const loginSuccess = (values: LooseObject) => {
+        console.log('login', loginSuccess);
+        const userConfig = {
+            tokenInfo: {
+                ...values.tokenInfo
+            },
+            domain: values.domain,
+            autoLogin: values.autoLogin ?? true,
+            uploadCall: values.uploadCall ?? true,
+            notification: values.notification ?? true,
+            autoCreate: values.autoCreate ?? false,
+            autoCreateConfig: values.autoCreateConfig ?? AUTO_CREATE_CONFIG_DEF,
+            uploadCallConfig: values.uploadCallConfig ?? UPLOAD_CALL_CONFIG_DEF,
+            notificationConfig: values.notificationConfig ?? NOTIFICATION_CONFIG_DEF,
+        }
+        saveUserConfig(userConfig)
         history.replace({ pathname: '/home' });
     }
 
     /**
      * 获取用户信息
      */
-    const getUserInfo = () => {
+    const getUserInfo = (values: LooseObject) => {
         getUser().then(res => {
             if (res?.error) {
                 setErrorMessage(res?.error);
             }
-            res?.Id && loginSuccess();
+            res?.Id && loginSuccess(values);
         })
     }
 
@@ -83,45 +116,168 @@ const IndexPage: React.FC<LoginProps> = ({
      * 获取用户信息
      * @param values 用户信息
      */
-    const login = (values: LooseObject) => {
-        const { username, password, securityCode = '' } = values;
+    const toLogin = (values: LooseObject) => {
+        console.log('login', values);
+        const domain = checkServerAddress(values.domain);
+        sessionStorage.setItem(SESSION_STORAGE_KEY.domain, domain)
+        sessionStorage.setItem(SESSION_STORAGE_KEY.rememberMe, remember ? 'true' : 'false')
+        login();
+    }
+
+    const getTokenByCode = (tokenInfo: LooseObject) => {
         const params = {
-            username, password, securityCode,
-        };
-        getToken(params).then(tokenInfo => {
-            if (tokenInfo?.code === REQUEST_CODE.connectError) {
+            code: tokenInfo.code,
+            client_id: DEVELOP_USER_CONFIG.client_id,
+            client_secret: DEVELOP_USER_CONFIG.client_secret,
+            redirect_uri: LOGIN_CONFIG.redirect_uri,
+            grant_type: 'authorization_code',
+        }
+        return getTokenByCodeRequest(params).then((res: LooseObject) => {
+            console.log('token', res);
+            if (res?.code === REQUEST_CODE.connectError) {
                 setErrorMessage('error.network');
                 return;
             }
-            if (tokenInfo?.error === 'invalid_grant') {
+            if (res?.error === 'invalid_grant') {
                 setErrorMessage("error.userInfo");
                 return;
             }
-            if (!tokenInfo || tokenInfo?.status || tokenInfo?.error) {
+            if (!res || res?.status || res?.error) {
                 setErrorMessage('error.userInfo');
                 return;
             }
-            const userConfig = {
-                tokenInfo: {
-                    username,
-                    password: remember ? values.password : undefined,
-                    securityCode: remember ? values.securityCode : undefined,
-                },
-                autoLogin: remember,
-                uploadCall: values.uploadCall ?? true,
-                showConfig: values.showConfig ?? {
-                    first: 'Name',
-                    second: 'Phone',
-                    third: 'None',
-                    forth: 'None',
-                    fifth: 'None',
-                },
+            if (res.access_token) {
+                sessionStorage.setItem(SESSION_STORAGE_KEY.tokenInfo, JSON.stringify(res))
             }
-            save(userConfig);
-            saveUserConfig(userConfig)
-            getUserInfo();
-        });
+        })
+    }
+
+    const getCode = () => {
+        const tokenInfo = setToken();
+        console.log('token', tokenInfo);
+        if (tokenInfo.code) {
+            getTokenByCode(tokenInfo).then(() => {
+                getUserConfig(true)
+            })
+            return
+        }
+        if (get(tokenInfo, 'error')) {
+            setErrorMessage('error.message');
+            return;
+        }
+        getUserConfig();
     };
+
+    const getUserConfig = (isLogin?: boolean) => {
+        // @ts-ignore
+        pluginSDK.userConfig.getUserConfig(function ({ errorCode, data }) {
+            console.log(errorCode, data);
+            if (errorCode === 0 && data) {
+                const userInfo = JSON.parse(data);
+                console.log(userInfo);
+                userConfig.current = userInfo;
+
+                const sessionDomain = sessionStorage.getItem(SESSION_STORAGE_KEY.domain);
+                let domain = userInfo.domain || [DEFAULT_DOMAIN];
+                if (typeof domain === 'string') {
+                    domain = [domain];
+                }
+                if (sessionDomain) {
+                    domain.unshift(sessionDomain);
+                    domain = [...new Set(domain)];
+                }
+                else {
+                    sessionStorage.setItem(SESSION_STORAGE_KEY.domain, domain[0]);
+                }
+                setDomains(domain);
+
+                const loginParams: any = {
+                    domain: domain[0],
+                };
+                form.setFieldsValue(loginParams);
+
+                const rememberMe = sessionStorage.getItem(SESSION_STORAGE_KEY.rememberMe);
+                const autoLogin = rememberMe !== 'false';
+                setRemember(rememberMe !== 'false')
+
+                // 已登录的与预装配置进行对比
+                let sameConfig = true;
+
+                // 有预装配置 走预装配置
+                const preParamObjectStr = sessionStorage.getItem('preParamObject');
+                if (preParamObjectStr) {
+                    const preParamObject = JSON.parse(sessionStorage.getItem('preParamObject') || '');
+                    if (preParamObject) {
+                        const formParams: any = {};
+                        Object.keys(preParamObject).forEach((item) => {
+                            Object.keys(userInfo.tokenInfo).forEach((element) => {
+                                if (item.toLowerCase() === element.toLowerCase()) {
+                                    formParams[element] = preParamObject[item];
+                                    if (!sameConfig) {
+                                        return;
+                                    }
+                                    sameConfig = preParamObject[item] === userInfo.tokenInfo[element];
+                                }
+                            });
+                        });
+                        form.setFieldsValue({ ...formParams });
+                    }
+                }
+
+                const sessionTokenInfo = JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEY.tokenInfo) || '{}');
+
+                const tokenInfo = sessionTokenInfo.access_token ? sessionTokenInfo : userInfo.tokenInfo;
+                sessionStorage.setItem(SESSION_STORAGE_KEY.tokenInfo, JSON.stringify(tokenInfo));
+                if (isLogin || (sameConfig && userInfo.autoLogin)) {
+                    const params = {
+                        ...userInfo,
+                        tokenInfo,
+                        domain,
+                        autoLogin,
+                    }
+                    getUserInfo(params)
+                    return;
+                }
+            }
+            else {
+                // 有预装配置 走预装配置
+                const preParamObjectStr = sessionStorage.getItem('preParamObject');
+
+                let domain = [DEFAULT_DOMAIN]
+                const sessionDomain = sessionStorage.getItem(SESSION_STORAGE_KEY.domain) || '';
+                if (sessionDomain) {
+                    domain.unshift(sessionDomain);
+                    domain = [...new Set(domain)];
+                }
+                if (preParamObjectStr) {
+                    const preParamObject = JSON.parse(preParamObjectStr);
+                    const userInfo: any = { domain: '' }
+                    if (preParamObject) {
+                        Object.keys(preParamObject).forEach(item => {
+                            Object.keys(userInfo).forEach(element => {
+                                if (item.toLowerCase() === element.toLowerCase()) {
+                                    userInfo[element] = preParamObject[item]
+                                    if (element.toLowerCase() === 'domain') {
+                                        domain.unshift(preParamObject[item])
+                                    }
+                                }
+                            })
+                        })
+                        form.setFieldsValue(userInfo)
+                    }
+                }
+                const tokenInfo = JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEY.tokenInfo) || '{}');
+                setDomains(domain);
+
+                const rememberMe = sessionStorage.getItem(SESSION_STORAGE_KEY.rememberMe);
+                const autoLogin = rememberMe !== 'false';
+                setRemember(autoLogin);
+                if (isLogin) {
+                    getUserInfo({ tokenInfo, domain, autoLogin });
+                }
+            }
+        })
+    }
 
     /**
      * 1.获取已保存的用户配置，填充表单
@@ -130,18 +286,7 @@ const IndexPage: React.FC<LoginProps> = ({
      */
     useEffect(() => {
         getVersionList().then(() => {
-            // @ts-ignore
-            pluginSDK.userConfig.getUserConfig(function ({ errorCode, data }) {
-                console.log(errorCode, data);
-                if (errorCode === 0 && data) {
-                    const userConfig = JSON.parse(data);
-                    console.log(userConfig);
-                    form.setFieldsValue(userConfig.tokenInfo);
-                    if (userConfig.autoLogin) {
-                        login({ ...userConfig.tokenInfo, ...userConfig });
-                    }
-                }
-            })
+            getCode();
         });
     }, []);
 
@@ -149,25 +294,57 @@ const IndexPage: React.FC<LoginProps> = ({
         {errorMessage && <div className={styles.errorDiv}>
             <div className={styles.errorMessage}>{formatMessage({ id: errorMessage })}</div>
         </div>}
-        <div className={styles.homePage}>
+        <div className={styles.homePage} onClick={closeList}>
             <Form
                 className={styles.form}
                 form={form}
                 layout="vertical"
-                onFinish={login}
+                onFinish={toLogin}
                 onFocus={onfocus}
             >
                 <div className={styles.formContent}>
-                    <Form.Item
-                        name="username"
-                        rules={[{
-                            required: true, message: formatMessage({ id: 'login.name.error' })
-                        }]}
-                    >
-                        <Input placeholder={formatMessage({ id: 'login.name' })}
-                            prefix={<Image src={UserIcon} preview={false} />} />
-                    </Form.Item>
-                    <Form.Item
+                    <div className={styles.clientId}>
+                        <Form.Item
+                            name="domain"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: 'Please input Server Address.',
+                                },
+                                {
+                                    type: 'url',
+                                    message: 'Please input correct Server Address.',
+                                }
+                            ]}
+                        >
+                            <Input placeholder={"Server Address"}
+                                prefix={<Image src={ServerIcon} preview={false} />}
+                                suffix={<Image
+                                    src={DownIcon}
+                                    className={styles.downIcon}
+                                    preview={false}
+                                    onClick={showDomainList}
+                                />}
+                            />
+                        </Form.Item>
+                        <div
+                            className={styles.clientIdList}
+                            hidden={!domainShow || domains.length <= 0}
+                        >
+                            <div className={styles.clientIdListContent}>
+                                {domains.map((item: string) => (
+                                    <div
+                                        key={item}
+                                        onClick={() => setDomain(item)}
+                                        className={styles.clientIdItem}
+                                    >
+                                        {item}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    {/* <Form.Item
                         name="password"
                         rules={[{
                             required: true, message: formatMessage({ id: 'login.password.error' })
@@ -187,7 +364,7 @@ const IndexPage: React.FC<LoginProps> = ({
                             iconRender={visible => (visible ? <Image src={OpenIcon} preview={false} /> :
                                 <Image src={CloseIcon} preview={false} />)}
                         />
-                    </Form.Item>
+                    </Form.Item> */}
                 </div>
                 <Form.Item>
                     <Button type="primary" htmlType="submit" loading={loginLoading}>
@@ -199,8 +376,8 @@ const IndexPage: React.FC<LoginProps> = ({
                         {formatMessage({ id: 'login.remember' })}
                     </Checkbox>
                 </div>
-            </Form>
-        </div>
+            </Form >
+        </div >
         <div className={styles.footer}>
             <div>
                 <Footer url="https://documentation.grandstream.com/knowledge-base/wave-crm-add-ins/#overview"
@@ -214,7 +391,12 @@ const IndexPage: React.FC<LoginProps> = ({
 
 export default connect(
     ({ loading }: { loading: Loading }) => ({
-        loginLoading: loading.effects['login/getVersionList'] || loading.effects['login/getToken'] || loading.effects['global/getUser'],
+        loginLoading: loading.effects['login/getVersionList']
+            || loading.effects['login/getToken']
+            || loading.effects['global/getUser']
+            || loading.effects['global/saveUserConfig']
+            || loading.effects['login/getTokenByCode']
+            || loading.effects['login/login'],
     }),
     (dispatch: Dispatch) => ({
         getVersionList: () => dispatch({
@@ -223,15 +405,17 @@ export default connect(
         getToken: (payload: LooseObject) => dispatch({
             type: 'login/getToken', payload,
         }),
+        login: () => dispatch({
+            type: 'login/login',
+        }),
         getUser: () => dispatch({
             type: 'global/getUser',
         }),
         saveUserConfig: (payload: LooseObject) => dispatch({
             type: 'global/saveUserConfig', payload,
         }),
-        save: (payload: LooseObject) => dispatch({
-            type: 'global/save',
-            payload
+        getTokenByCodeRequest: (payload: LooseObject) => dispatch({
+            type: 'login/getTokenByCode', payload,
         })
     })
 )(IndexPage);
